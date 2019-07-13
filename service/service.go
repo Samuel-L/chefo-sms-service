@@ -54,7 +54,7 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 	w.Header().Set("Content-type", "application/json")
 
 	if errors := requestBody.validate(); len(errors) > 0 {
-		err := map[string]interface{}{"error": errors}
+		err := map[string]interface{}{"errors": errors}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 		return
@@ -69,6 +69,6 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 	sms.Create(service.DbClient)
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(sms)
+	json.NewEncoder(w).Encode(map[string]Sms{"data": sms})
 	return
 }
