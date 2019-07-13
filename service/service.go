@@ -54,8 +54,7 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 			CreatedAt: time.Now(),
 			CreatedBy: "API KEY",
 		}
-		// save instance
-		// call Twilio API
+		sms.Create()
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(sms)
