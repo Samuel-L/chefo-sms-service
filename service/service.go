@@ -70,11 +70,10 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 	}
 
 	sms := Sms{
-		ID:        "1",
 		To:        requestBody.PhoneNumber,
-		Content:   requestBody.ConfirmationCode,
+		Content:   fmt.Sprintf("Your confirmation code is: %s", requestBody.ConfirmationCode),
 		CreatedAt: time.Now(),
-		CreatedBy: apiKey, // TODO: Foreign key
+		CreatedBy: apiKey,
 	}
 	sms.Create(service.DbClient)
 
