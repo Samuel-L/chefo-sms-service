@@ -1,16 +1,13 @@
 package service
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/ttacon/libphonenumber"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -43,6 +40,7 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 
 type Service struct {
 	DbClient *mongo.Client
+	APIKey   string
 }
 
 func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
@@ -55,13 +53,6 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 
 	w.Header().Set("Content-type", "application/json")
 
-	apiKey := r.Header.Get("x-api-key")
-	if !service.ValidateAPIKey(apiKey) {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode("API key invalid")
-		return
-	}
-
 	if errors := requestBody.validate(); len(errors) > 0 {
 		err := map[string]interface{}{"error": errors}
 		w.WriteHeader(http.StatusBadRequest)
@@ -73,23 +64,11 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 		To:        requestBody.PhoneNumber,
 		Content:   fmt.Sprintf("Your confirmation code is: %s", requestBody.ConfirmationCode),
 		CreatedAt: time.Now(),
-		CreatedBy: apiKey,
+		CreatedBy: service.APIKey,
 	}
 	sms.Create(service.DbClient)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(sms)
 	return
-}
-
-func (service *Service) ValidateAPIKey(key string) bool {
-	var result APIKey
-	filter := bson.D{{"key", key}}
-	collection := service.DbClient.Database("test").Collection("api_keys")
-	if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil || !result.IsActive {
-		log.Printf("API key \"%s\" is invalid", key)
-		return false
-	}
-	log.Printf("API key \"%s\" is valid", key)
-	return true
 }
