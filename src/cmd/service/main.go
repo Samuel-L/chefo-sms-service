@@ -45,24 +45,27 @@ func SendConfirmationCodeEndpoint(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	w.Header().Set("Content-type", "application/json")
+
 	if errors := requestBody.validate(); len(errors) > 0 {
 		err := map[string]interface{}{"error": errors}
-		w.Header().Set("Content-type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
+	} else {
+		sms := Sms{
+			ID:        "1",
+			To:        requestBody.PhoneNumber,
+			Content:   requestBody.ConfirmationCode,
+			CreatedAt: time.Now(),
+			CreatedBy: "API KEY",
+		}
+		// save instance
+		// call Twilio API
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(sms)
 	}
 
-	sms := Sms{
-		ID:        "1",
-		To:        requestBody.PhoneNumber,
-		Content:   requestBody.ConfirmationCode,
-		CreatedAt: time.Now(),
-		CreatedBy: "API KEY",
-	}
-	// save instance
-	// call Twilio API
-
-	json.NewEncoder(w).Encode(sms)
 }
 
 func main() {
