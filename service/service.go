@@ -79,9 +79,10 @@ func (service *Service) ValidateAPIKey(key string) bool {
 	var result APIKey
 	filter := bson.D{{"key", key}}
 	collection := service.DbClient.Database("test").Collection("api_keys")
-	if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil {
-		log.Printf("Validation failed: \"%s\" it not a valid API key.", key)
+	if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil || !result.IsActive {
+		log.Printf("API key \"%s\" is invalid", key)
 		return false
 	}
+	log.Printf("API key \"%s\" is valid", key)
 	return true
 }
