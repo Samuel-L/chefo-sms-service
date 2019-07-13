@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -23,7 +24,7 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 		err.Add("phone_number", "This field is required")
 	}
 
-	// validate phone number
+	// TODO: validate phone number
 
 	return err
 }
@@ -42,6 +43,11 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 
 	w.Header().Set("Content-type", "application/json")
 
+	apiKey := r.Header.Get("x-api-key")
+	if !service.ValidateAPIKey(apiKey) {
+		// TODO: Implement
+	}
+
 	if errors := requestBody.validate(); len(errors) > 0 {
 		err := map[string]interface{}{"error": errors}
 		w.WriteHeader(http.StatusBadRequest)
@@ -52,11 +58,16 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 			To:        requestBody.PhoneNumber,
 			Content:   requestBody.ConfirmationCode,
 			CreatedAt: time.Now(),
-			CreatedBy: "API KEY",
+			CreatedBy: "API KEY", // TODO: Implement
 		}
 		sms.Create()
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(sms)
 	}
+}
+
+func (service *Service) ValidateAPIKey(key string) bool {
+	log.Print("Not implemented (API key validation)")
+	return true
 }
