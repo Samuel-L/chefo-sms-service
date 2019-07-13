@@ -37,11 +37,11 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 	return err
 }
 
-type App struct{}
+type Service struct{}
 
-func (app *App) Initialize() {}
+func (service *Service) Initialize() {}
 
-func (app *App) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
+func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
 	requestBody := &ConfirmationCodeRequest{}
 
 	defer r.Body.Close()
@@ -72,10 +72,10 @@ func (app *App) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func main() {
-	app := &App{}
-	app.Initialize()
+	service := &Service{}
+	service.Initialize()
 
-	http.HandleFunc("/v1/sms/send-confirmation-code", app.SendConfirmationCodeHandler)
+	http.HandleFunc("/v1/sms/send-confirmation-code", service.SendConfirmationCodeHandler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
