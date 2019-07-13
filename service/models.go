@@ -28,3 +28,10 @@ func (sms *Sms) Create(client *mongo.Client) {
 func (sms *Sms) SendMessage() {
 	log.Print("Not implemented (API call to Twilio API)")
 }
+
+type APIKey struct {
+	Key       string `json:"key"`
+	IsActive  bool   `json:"is_active"`
+	Comment   string `json:"comment"`
+	CreatedAt string `json:"created_at"`
+}

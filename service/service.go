@@ -1,12 +1,14 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -47,29 +49,39 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 
 	apiKey := r.Header.Get("x-api-key")
 	if !service.ValidateAPIKey(apiKey) {
-		// TODO: Implement
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode("API key invalid")
+		return
 	}
 
 	if errors := requestBody.validate(); len(errors) > 0 {
 		err := map[string]interface{}{"error": errors}
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
-	} else {
-		sms := Sms{
-			ID:        "1",
-			To:        requestBody.PhoneNumber,
-			Content:   requestBody.ConfirmationCode,
-			CreatedAt: time.Now(),
-			CreatedBy: "API KEY", // TODO: Implement
-		}
-		sms.Create(service.DbClient)
-
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(sms)
+		return
 	}
+
+	sms := Sms{
+		ID:        "1",
+		To:        requestBody.PhoneNumber,
+		Content:   requestBody.ConfirmationCode,
+		CreatedAt: time.Now(),
+		CreatedBy: apiKey, // TODO: Foreign key
+	}
+	sms.Create(service.DbClient)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(sms)
+	return
 }
 
 func (service *Service) ValidateAPIKey(key string) bool {
-	log.Print("Not implemented (API key validation)")
+	var result APIKey
+	filter := bson.D{{"key", key}}
+	collection := service.DbClient.Database("test").Collection("api_keys")
+	if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil {
+		log.Printf("Validation failed: \"%s\" it not a valid API key.", key)
+		return false
+	}
 	return true
 }
