@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ConfirmationCodeRequest struct {
@@ -29,9 +31,9 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 	return err
 }
 
-type Service struct{}
-
-func (service *Service) Initialize() {}
+type Service struct {
+	DbClient *mongo.Client
+}
 
 func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
 	requestBody := &ConfirmationCodeRequest{}
@@ -60,7 +62,7 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 			CreatedAt: time.Now(),
 			CreatedBy: "API KEY", // TODO: Implement
 		}
-		sms.Create()
+		sms.Create(service.DbClient)
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(sms)

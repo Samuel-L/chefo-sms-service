@@ -1,8 +1,11 @@
 package service
 
 import (
+	"context"
 	"log"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Sms struct {
@@ -13,11 +16,13 @@ type Sms struct {
 	CreatedBy string    `json:"created_by"`
 }
 
-func (sms *Sms) Create() *Sms {
-	log.Print("Not implemented (create SMS database instance)")
+func (sms *Sms) Create(client *mongo.Client) {
+	collection := client.Database("test").Collection("sms")
+	_, err := collection.InsertOne(context.TODO(), sms)
+	if err != nil {
+		log.Fatal(err)
+	}
 	sms.SendMessage()
-
-	return sms
 }
 
 func (sms *Sms) SendMessage() {
