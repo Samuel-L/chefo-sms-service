@@ -3,11 +3,13 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/ttacon/libphonenumber"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -28,7 +30,13 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 		err.Add("phone_number", "This field is required")
 	}
 
-	// TODO: validate phone number
+	if phoneNumber, parseError := libphonenumber.Parse(request.PhoneNumber, "US"); parseError != nil {
+		err.Add("phone_number", fmt.Sprintf("\"%s\" is an invalid phone number", request.PhoneNumber))
+	} else {
+		if phoneNumberIsValid := libphonenumber.IsValidNumber(phoneNumber); phoneNumberIsValid == false {
+			err.Add("phone_number", fmt.Sprintf("\"%s\" is an invalid phone number", request.PhoneNumber))
+		}
+	}
 
 	return err
 }
