@@ -37,7 +37,11 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 	return err
 }
 
-func SendConfirmationCodeEndpoint(w http.ResponseWriter, r *http.Request) {
+type App struct{}
+
+func (app *App) Initialize() {}
+
+func (app *App) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
 	requestBody := &ConfirmationCodeRequest{}
 
 	defer r.Body.Close()
@@ -65,11 +69,13 @@ func SendConfirmationCodeEndpoint(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(sms)
 	}
-
 }
 
 func main() {
-	http.HandleFunc("/v1/sms/send-confirmation-code", SendConfirmationCodeEndpoint)
+	app := &App{}
+	app.Initialize()
+
+	http.HandleFunc("/v1/sms/send-confirmation-code", app.SendConfirmationCodeHandler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
