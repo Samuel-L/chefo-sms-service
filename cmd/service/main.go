@@ -21,7 +21,8 @@ func main() {
 	}
 
 	api := &service.Service{DbClient: client}
-	http.HandleFunc("/v1/sms/send-confirmation-code", api.SendConfirmationCodeHandler)
+	serviceHandler := http.HandlerFunc(api.SendConfirmationCodeHandler)
+	http.Handle("/v1/sms/send-confirmation-code", api.LogRequest(serviceHandler))
 
 	log.Print("Service is running on port :8080!")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
