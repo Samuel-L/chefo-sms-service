@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/samuel-l/chefo-sms-service/twilio"
 	"github.com/ttacon/libphonenumber"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -39,8 +40,9 @@ func (request *ConfirmationCodeRequest) validate() url.Values {
 }
 
 type Service struct {
-	DbClient *mongo.Client
-	APIKey   string
+	DbClient     *mongo.Client
+	APIKey       string
+	TwilioClient *twilio.Twilio
 }
 
 func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +69,7 @@ func (service *Service) SendConfirmationCodeHandler(w http.ResponseWriter, r *ht
 		CreatedBy: service.APIKey,
 	}
 	sms.Create(service.DbClient)
+	service.TwilioClient.SendTextMessage(sms.To, sms.Content)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]Sms{"data": sms})

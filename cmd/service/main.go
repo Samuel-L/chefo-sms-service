@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/samuel-l/chefo-sms-service/twilio"
 
 	"github.com/samuel-l/chefo-sms-service/service"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +24,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	api := &service.Service{DbClient: client}
+	twilioClient := &twilio.Twilio{
+		AccountSid: os.Getenv("CHEFO_TWILIO_ACCOUNT_SID"),
+		AuthToken:  os.Getenv("CHEFO_TWILIO_AUTH_TOKEN"),
+		From:       os.Getenv("CHEFO_TWILIO_FROM_NUMBER"),
+		URL: fmt.Sprintf(
+			"https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json",
+			os.Getenv("CHEFO_TWILIO_ACCOUNT_SID"),
+		),
+	}
+	api := &service.Service{
+		DbClient:     client,
+		TwilioClient: twilioClient,
+	}
 	serviceHandler := http.HandlerFunc(api.SendConfirmationCodeHandler)
 	http.Handle("/v1/sms/send-confirmation-code", api.LogRequest(api.ValidateAPIKey(serviceHandler)))
 
