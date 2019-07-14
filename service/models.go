@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +17,7 @@ type Sms struct {
 }
 
 func (sms *Sms) Create(client *mongo.Client) {
-	collection := client.Database("test").Collection("sms")
+	collection := client.Database(os.Getenv("CHEFO_DATABASE")).Collection("sms")
 	instance, err := collection.InsertOne(context.TODO(), sms)
 	if err != nil {
 		log.Println("An error occured when creating an instance of service.models.Sms: ", err)

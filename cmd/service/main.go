@@ -40,8 +40,8 @@ func main() {
 	serviceHandler := http.HandlerFunc(api.SendConfirmationCodeHandler)
 	http.Handle("/v1/sms/send-confirmation-code", api.LogRequest(api.ValidateAPIKey(serviceHandler)))
 
-	log.Print("Service is running on port :8080!")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	log.Printf("Service is running on port :%s!", os.Getenv("CHEFO_PORT"))
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", os.Getenv("CHEFO_PORT")), nil); err != nil {
 		log.Fatal(err)
 	}
 }
