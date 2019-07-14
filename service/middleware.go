@@ -32,7 +32,7 @@ func (service *Service) ValidateAPIKey(next http.Handler) http.Handler {
 		collection := service.DbClient.Database("test").Collection("api_keys")
 		if err := collection.FindOne(context.TODO(), filter).Decode(&result); err != nil || !result.IsActive {
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode("API key invalid")
+			json.NewEncoder(w).Encode("{}")
 			return
 		}
 		log.Printf("API key \"%s\" is valid", service.APIKey)
