@@ -17,7 +17,7 @@ type Sms struct {
 }
 
 func (sms *Sms) Create(client *mongo.Client) {
-	collection := client.Database(os.Getenv("CHEFO_DATABASE")).Collection("sms")
+	collection := client.Database(os.Getenv("CHEFO_SERVICE_DATABASE")).Collection("sms")
 	instance, err := collection.InsertOne(context.TODO(), sms)
 	if err != nil {
 		log.Println("An error occured when creating an instance of service.models.Sms: ", err)
